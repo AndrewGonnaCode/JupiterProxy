@@ -11,8 +11,8 @@ export default class AggregatorsService {
         outputMint: dst,
         amount,
         dexes:['Raydium'],
-        // onlyDirectRoutes:true,
-        excludeDexes:'SolFi,Obric V2,ZeroFi'
+        onlyDirectRoutes:true,
+        excludeDexes:'Obric V2,ZeroFi,Lifinity V2,Raydium'
       },
     };
     const requestURL = "https://lite-api.jup.ag/swap/v1/quote";

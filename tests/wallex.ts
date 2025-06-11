@@ -36,6 +36,7 @@ describe.skip("wallex", () => {
   //   const { process } = await startForkedValidator();
   //   validatorProcess = process;
   // });
+
   it("Is initialized!", async () => {
 
     // const { process } = await startForkedValidator();

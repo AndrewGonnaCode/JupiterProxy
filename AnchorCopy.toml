@@ -79,3 +79,8 @@ address = "CAPhoEse9xEH95XmdnJjYrZdNCA8xfUWdy3aWymHa1Vj"  # SolFi
 address = "FpCMFDFGYotvufJ7HrFHsWEiiQCGbkLCtwHiDnh7o28Q"  # Whirlpool
 [[test.validator.clone]]
 address = "2SgUGxYDczrB6wUzXHPJH65pNhWkEzNMEx3km4xTYUTC"  # Invariant
+
+[[test.validator.account]]
+address = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+filename = "./test-account.json"
+

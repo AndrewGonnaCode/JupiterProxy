@@ -9,6 +9,8 @@ import {
   Transaction,
   sendAndConfirmTransaction,
   ComputeBudgetProgram,
+  AddressLookupTableAccount,
+  TransactionInstruction,
 } from "@solana/web3.js";
 import {
   TOKEN_PROGRAM_ID,
@@ -22,7 +24,8 @@ import { Wallex } from "../target/types/wallex";
 import { readSwapCache } from "../utils/hooks/swap-cache";
 import { transferWrappedSol, wrapSol } from "../utils/wrap-sol";
 import { getAssociatedTokenAccounts } from "../utils/getAssociatedTokenAccounts";
-import { getAddressesLookupAccounts, getAddressLookupTableAccounts } from "../utils/getAddressLookUpAccounts";
+import { getAddressesLookupAccounts, getAddressLookupTableAccounts, getAddressLookupTableAccountsV2 } from "../utils/getAddressLookUpAccounts";
+import { get } from "http";
 
 
 // Add to the cache interface
@@ -37,7 +40,19 @@ const JUPITER_V6_AGG_PROGRAM_ID = new PublicKey(
   "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
 );
 
-describe("Jupiter Swap Tests", () => {
+const deserializeInstruction = (instruction) => {
+  return new TransactionInstruction({
+    programId: new PublicKey(instruction.programId),
+    keys: instruction.accounts.map((key) => ({
+      pubkey: new PublicKey(key.pubkey),
+      isSigner: key.isSigner,
+      isWritable: key.isWritable,
+    })),
+    data: Buffer.from(instruction.data, "base64"),
+  });
+}
+
+describe.only("Jupiter Swap Tests", () => {
   // Constants for the test
   const INPUT_MINT = new PublicKey(WSOL_ADDRESS);
   const OUTPUT_MINT = new PublicKey(USDC_ADDRESS);
@@ -95,18 +110,6 @@ describe("Jupiter Swap Tests", () => {
   });
 
   it.only("should execute a swap from WSOL to USDC", async () => {
-    console.log("Starting Jupiter Swap test...");
-
-    // console.log("Using cached quote:", {
-    //   inputAmount: cachedQuote.inAmount,
-    //   outputAmount: cachedQuote.outAmount,
-    //   priceImpact: cachedQuote.priceImpactPct,
-    //   routePlan: cachedQuote.routePlan.map(plan => ({
-    //     swapInfo: plan.swapInfo.label,
-    //     percent: plan.percent
-    //   })),
-    //   swapData: cachedSwapData
-    // });
 
     const payerWrappedSolAccount = await wrapSol(connection, payer);
     const userWrappedSolAccount = await wrapSol(connection, user);
@@ -125,12 +128,15 @@ describe("Jupiter Swap Tests", () => {
       CPI_SWAP_PROGRAM_ID
     );
 
-    console.log('Vault in swap address', vault.toBase58());
+    // Create fee_authority PDA
+    const [fee_authority] = anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("fee-authority"),
+      ],
+      CPI_SWAP_PROGRAM_ID
+    );
 
     await transferWrappedSol(connection, payer, vault, payerWrappedSolAccount, true);
-
-    // Create token accounts
-    console.log("Creating token accounts...");
 
     const { vaultInputTokenAccount, vaultOutputTokenAccount } = 
       getAssociatedTokenAccounts(vault, INPUT_MINT, OUTPUT_MINT);
@@ -141,6 +147,19 @@ describe("Jupiter Swap Tests", () => {
       user.publicKey,
       false
     );
+
+    const feeRecipientOutputTokenAccount = await getAssociatedTokenAddress(
+      OUTPUT_MINT,
+      fee_authority,
+      true
+    )
+
+    // const createFeeRecipientOutputTokenAccountIx = createAssociatedTokenAccountInstruction(
+    //   payer.publicKey,
+    //   feeRecipientOutputTokenAccount,
+    //   fee_authority,
+    //   OUTPUT_MINT
+    // );
 
     // Create output token accounts if needed
     const createOutputAtaIx = createAssociatedTokenAccountInstruction(
@@ -156,22 +175,6 @@ describe("Jupiter Swap Tests", () => {
       user.publicKey,
       OUTPUT_MINT
     );
-
-    // // // Verify accounts before swap
-    // console.log("\nVerifying accounts before swap...");
-    // if(cachedSwapData.swapInstruction.accounts.length > 0) {
-    //   for (const acc of cachedSwapData.swapInstruction.accounts) {
-    //     const accountInfo = await connection.getAccountInfo(new PublicKey(acc.pubkey));
-    //     console.log(`Account ${acc.pubkey}:`, {
-    //       exists: accountInfo !== null,
-    //       owner: accountInfo?.owner,
-    //       executable: accountInfo?.executable,
-    //       isSigner: acc.isSigner,
-    //       isWritable: acc.isWritable
-    //     });
-    //   }
-    // }
-
     //  // Build approve instruction
      const approveIx = createApproveInstruction(
        userWrappedSolAccount, // source account
@@ -179,11 +182,8 @@ describe("Jupiter Swap Tests", () => {
        user.publicKey,        // user is the authority
        BigInt(cachedQuote.inAmount)     // approved amount
      );
-
      const lookupTablesAccounts = await getAddressesLookupAccounts(mainnetConnection, cachedSwapData.addressLookupTableAddresses);
-    //  const lookupTablesAccounts = await getAddressLookupTableAccounts(mainnetConnection, cachedSwapData.addressLookupTableAddresses);
-
-     console.log('lookupTablesAccounts', lookupTablesAccounts);
+    //  const lookupTablesAccounts = await getAddressLookupTableAccountsV2(mainnetConnection, cachedSwapData.addressLookupTableAddresses))(mainnetConnection, cachedSwapData.addressLookupTableAddresses);
 
      // Submit transaction
      const tx = new Transaction().add(approveIx, createOutputAtaIx, createRecipientAtaIx);
@@ -217,6 +217,11 @@ describe("Jupiter Swap Tests", () => {
         vaultOutputTokenAccount: vaultOutputTokenAccount,
         userInputTokenAccount: userWrappedSolAccount,
         recipientTokenAccount: userOutputTokenAccount,
+        signer:payer.publicKey,
+        feeRecipientTokenAccount: feeRecipientOutputTokenAccount,
+        feeAuthority: fee_authority,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID,
         jupiterProgram: JUPITER_V6_AGG_PROGRAM_ID
       })
       .remainingAccounts(
@@ -231,15 +236,14 @@ describe("Jupiter Swap Tests", () => {
       // Request a higher CU limit (e.g. 400,000)
       const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 });
 
+      console.log("lookupTablesAccounts", lookupTablesAccounts);
 
       // Build versioned transaction
       const messageV0 = new TransactionMessage({
         payerKey: payer.publicKey,
         recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
         instructions: [computeIx, swapIx], 
-        // addressTableLookups: cachedDataLocal.lookupTables
       }).compileToV0Message(lookupTablesAccounts);
-
 
       const transaction = new VersionedTransaction(messageV0);
       
@@ -248,7 +252,6 @@ describe("Jupiter Swap Tests", () => {
       transaction.sign([payer]);
 
       console.log('After signing tx')
-
 
       const response = await connection.sendTransaction(transaction);
 
@@ -271,13 +274,57 @@ describe("Jupiter Swap Tests", () => {
 
       // Verify balances after swap
       const vaultInputBalance = await connection.getTokenAccountBalance(vaultInputTokenAccount);
-      // const vaultOutputBalance = await connection.getTokenAccountBalance(vaultOutputTokenAccount);
-      // const recipientBalance = await connection.getTokenAccountBalance(userOutputTokenAccount);
+      const vaultOutputBalance = await connection.getTokenAccountBalance(vaultOutputTokenAccount);
+      const recipientBalance = await connection.getTokenAccountBalance(userOutputTokenAccount);
+      const feeRecipientBalance = await connection.getTokenAccountBalance(feeRecipientOutputTokenAccount);
 
       console.log("\nBalances after swap:", {
         vaultInputBalance: vaultInputBalance.value.uiAmount,
-        // vaultOutputBalance: vaultOutputBalance.value.uiAmount,
-        // recipientBalance: recipientBalance.value.uiAmount,
+        vaultOutputBalance: vaultOutputBalance.value.uiAmount,
+        recipientBalance: recipientBalance.value.uiAmount,
+        feeRecipientBalance: feeRecipientBalance.value.uiAmount,
+      });
+
+
+      const recipientTokenAccount = await getAssociatedTokenAddress(
+        OUTPUT_MINT,
+        payer.publicKey,
+        false
+      );
+
+      const createRecipientToeknAccountIx = createAssociatedTokenAccountInstruction(
+        payer.publicKey,
+        recipientTokenAccount,
+        payer.publicKey,
+        OUTPUT_MINT
+      )
+
+
+      const withdrawIx = await program.methods.withdrawFees(
+        new anchor.BN(feeRecipientBalance.value.amount), // Withdraw the fee amount
+      )
+      .accounts({
+        feeAuthority: fee_authority,
+        feeMint: OUTPUT_MINT,
+        feeVault: feeRecipientOutputTokenAccount,
+        recipientTokenAccount,
+        signer: payer.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .instruction();
+
+
+      const withdrawTx = new Transaction().add(createRecipientToeknAccountIx, withdrawIx);
+      const withdrawSig = await sendAndConfirmTransaction(connection, withdrawTx, [payer]);
+
+      const feeRecipientBalanceAfter = await connection.getTokenAccountBalance(feeRecipientOutputTokenAccount);
+      const recipientBalanceAfter = await connection.getTokenAccountBalance(recipientTokenAccount);
+
+      console.log("✅ Withdraw transaction successful:", withdrawSig);
+
+      console.log("Balances after withdrawal:", {
+        feeRecipientBalance: feeRecipientBalanceAfter.value.uiAmount,
+        recipientBalance: recipientBalanceAfter.value.uiAmount,
       });
 
     } catch (error) {

@@ -5,6 +5,7 @@ import AggregatorsService from '../../services/aggregator.service';
 import { saveSwapCache, readSwapCache, clearSwapCache } from './swap-cache';
 import { AddressLookupTableAccount } from '@solana/web3.js';
 import { getAddressLookupTableAccounts } from '../getAddressLookUpAccounts';
+import { execSync } from 'child_process';
 
 // Known AMM program IDs and their names for better documentation
 const KNOWN_AMM_PROGRAMS = {
@@ -19,6 +20,26 @@ const REQUIRED_TOKEN_MINTS = {
     'So11111111111111111111111111111111111111112': 'WSOL',
     'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': 'USDT'
 };
+
+function dumpAccountWithCli(pubkey, outputDir = 'accounts') {
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  const fileName = `${pubkey}.json`;
+  const outputPath = path.join(outputDir, fileName);
+
+  try {
+    const cmd = `solana account ${pubkey} --output json-compact --output-file ${outputPath}`;
+    execSync(cmd, { stdio: 'ignore' }); // avoid terminal noise
+    console.log(`✅ Dumped ${pubkey} → ${outputPath}`);
+    return outputPath;
+  } catch (err) {
+    console.error(`❌ Failed to dump ${pubkey}: ${err.message}`);
+    return null;
+  }
+}
+
 
 /**
  * Cleans the Anchor.toml file by removing all existing clone entries
@@ -36,41 +57,88 @@ function cleanAnchorToml(): void {
     fs.writeFileSync(anchorTomlPath, anchorToml);
 }
 
-/**
- * Updates the Anchor.toml file with new clone entries
- */
-function updateAnchorToml(accountAddresses: Set<string>): void {
+type UpdateAnchorTomlParams = {
+    accountAddresses: Set<string>;
+    atlAccounts?: string[]; // public keys of accounts stored as files
+};
+
+function updateAnchorToml({ accountAddresses, atlAccounts = [] }: UpdateAnchorTomlParams): void {
     const anchorTomlPath = path.join(__dirname, '..', '..', 'Anchor.toml');
     let anchorToml = fs.readFileSync(anchorTomlPath, 'utf8');
 
-    // Generate clone entries with comments
+    // --- Clone entries ---
     const cloneEntries = Array.from(accountAddresses)
         .map(addr => {
             const comment = KNOWN_AMM_PROGRAMS[addr] || REQUIRED_TOKEN_MINTS[addr] || '';
-            return `[[test.validator.clone]]\naddress = "${addr}"${comment ? `  # ${comment}` : ''}\n`;
+            return `[[test.validator.clone]]\naddress = "${addr}"${comment ? `  # ${comment}` : ''}`;
         })
         .join('\n');
 
-    // Split the file into sections
+    // --- Modify [test.validator] section ---
     const sections = anchorToml.split('\n\n');
     const validatorSectionIndex = sections.findIndex(section => section.startsWith('[test.validator]'));
-    
+
     if (validatorSectionIndex === -1) {
-        // If no validator section exists, add it at the end
+        // Add whole validator section
         anchorToml += `\n[test.validator]\nurl = "https://api.mainnet-beta.solana.com"\n\n${cloneEntries}\n`;
     } else {
-        // Extract the validator URL if it exists
         const validatorSection = sections[validatorSectionIndex];
         const urlMatch = validatorSection.match(/url\s*=\s*"[^"]+"/);
         const validatorUrl = urlMatch ? urlMatch[0] : 'url = "https://api.mainnet-beta.solana.com"';
-        
-        // Replace the validator section with a new one that has the URL first
+
+        // Replace the validator section with updated clone entries
         sections[validatorSectionIndex] = `[test.validator]\n${validatorUrl}\n\n${cloneEntries}`;
         anchorToml = sections.join('\n\n');
     }
 
+    // --- Add [[test.validator.account]] entries at the end ---
+    // if (atlAccounts.length > 0) {
+    //     const accountEntries = atlAccounts.map(pubkey => {
+    //         const filename = `./accounts/${pubkey}.json`;
+    //         return `[[test.validator.account]]\naddress = "${pubkey}"\nfilename = "${filename}"`;
+    //     }).join('\n\n');
+
+    //     anchorToml += `\n\n${accountEntries}\n`;
+    // }
+
     fs.writeFileSync(anchorTomlPath, anchorToml);
 }
+
+// /**
+//  * Updates the Anchor.toml file with new clone entries
+//  */
+// function updateAnchorToml(accountAddresses: Set<string>): void {
+//     const anchorTomlPath = path.join(__dirname, '..', '..', 'Anchor.toml');
+//     let anchorToml = fs.readFileSync(anchorTomlPath, 'utf8');
+
+//     // Generate clone entries with comments
+//     const cloneEntries = Array.from(accountAddresses)
+//         .map(addr => {
+//             const comment = KNOWN_AMM_PROGRAMS[addr] || REQUIRED_TOKEN_MINTS[addr] || '';
+//             return `[[test.validator.clone]]\naddress = "${addr}"${comment ? `  # ${comment}` : ''}\n`;
+//         })
+//         .join('\n');
+
+//     // Split the file into sections
+//     const sections = anchorToml.split('\n\n');
+//     const validatorSectionIndex = sections.findIndex(section => section.startsWith('[test.validator]'));
+    
+//     if (validatorSectionIndex === -1) {
+//         // If no validator section exists, add it at the end
+//         anchorToml += `\n[test.validator]\nurl = "https://api.mainnet-beta.solana.com"\n\n${cloneEntries}\n`;
+//     } else {
+//         // Extract the validator URL if it exists
+//         const validatorSection = sections[validatorSectionIndex];
+//         const urlMatch = validatorSection.match(/url\s*=\s*"[^"]+"/);
+//         const validatorUrl = urlMatch ? urlMatch[0] : 'url = "https://api.mainnet-beta.solana.com"';
+        
+//         // Replace the validator section with a new one that has the URL first
+//         sections[validatorSectionIndex] = `[test.validator]\n${validatorUrl}\n\n${cloneEntries}`;
+//         anchorToml = sections.join('\n\n');
+//     }
+
+//     fs.writeFileSync(anchorTomlPath, anchorToml);
+// }
 
 /**
  * Verifies if an account exists on mainnet
@@ -129,7 +197,7 @@ async function getQuoteAndSwapData(
     amount: string,
     userAddress: string,
     connection: Connection
-): Promise<{ quote: any; swapData: any; accounts: Set<string>; lookupTables: AddressLookupTableAccount[] }> {
+): Promise<{ quote: any; swapData: any; accounts: Set<string>; lookupTables: AddressLookupTableAccount[], atlAccounts: Set<string> }> {
     // Try to get data from cache first
     const cachedData = readSwapCache();
     if (cachedData?.accounts.length > 0) {
@@ -143,7 +211,8 @@ async function getQuoteAndSwapData(
                 quote: cachedData.quote,
                 swapData: cachedData.swapData,
                 accounts: new Set(cachedData.accounts),
-                lookupTables: lookupTables
+                lookupTables: lookupTables,
+                atlAccounts: new Set([])
             };
     }
 
@@ -157,6 +226,8 @@ async function getQuoteAndSwapData(
         userAddress,
         quote
     );
+
+    console.log("Swap Data", swapData);
 
     // Collect all accounts
     const accounts = new Set<string>();
@@ -180,6 +251,9 @@ async function getQuoteAndSwapData(
         });
     }
 
+
+    let atlAccounts = new Set<string>();
+
     // Fetch and validate lookup tables
     let lookupTables: AddressLookupTableAccount[] = [];
     if (swapData.addressLookupTableAddresses?.length > 0) {
@@ -187,17 +261,57 @@ async function getQuoteAndSwapData(
             connection,
             swapData.addressLookupTableAddresses
         );
+
+        // let outputDir = './accounts';
+
+        //  if (!fs.existsSync(outputDir)) {
+        //      fs.mkdirSync(outputDir, { recursive: true });
+        //  }
+
+        for (const table of lookupTables) {
+            for (const addr of table.state.addresses) {
+                // const accountInfo = await connection.getAccountInfo(addr);
+                //  if (!accountInfo) {
+                //    console.warn(`Account not found: ${addr}`);
+                //      continue;
+                //  }
+                atlAccounts.add(addr.toBase58());
+
+                // dumpAccountWithCli(addr.toBase58(), outputDir);
+            //      const data = {
+            //        account: {
+            //          lamports: accountInfo.lamports,
+            //          owner: accountInfo.owner.toBase58(),
+            //          executable: accountInfo.executable,
+            //          rentEpoch: accountInfo.rentEpoch,
+            //          data: [accountInfo.data.toString('base64'), 'base64'],
+            //          space: accountInfo.data.length
+            //        },
+            //        pubkey: addr.toBase58(),
+            //   };
+            //     const fileName = `${addr}.json`;
+            //     const filePath = path.join(outputDir, fileName);
+            //     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+            //     console.log(`Saved ${addr} → ${filePath}`);
+            //     console.log('alt accounts length', atlAccounts.size);
+
+                //  await sleep(250); 
+
+            }
+        }
         
         // Add lookup table addresses to accounts set
         swapData.addressLookupTableAddresses.forEach(addr => {
             accounts.add(addr);
         });
+
+        // 
     }
 
     // Save to cache
     saveSwapCache(quote, swapData, Array.from(accounts), lookupTables);
 
-    return { quote, swapData, accounts, lookupTables };
+    return { quote, swapData, accounts, lookupTables, atlAccounts };
 }
 
 /**
@@ -224,7 +338,7 @@ export async function cloneNecessaryAccounts(userAddress: string): Promise<{ quo
     Object.keys(KNOWN_AMM_PROGRAMS).forEach(program => accountAddresses.add(program));
 
     // Get quote and swap data (either from cache or fresh)
-    const { quote, swapData, accounts, lookupTables } = await getQuoteAndSwapData(
+    const { quote, swapData, accounts, lookupTables, atlAccounts } = await getQuoteAndSwapData(
         aggregatorService,
         'So11111111111111111111111111111111111111112', // WSOL
         'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
@@ -241,8 +355,13 @@ export async function cloneNecessaryAccounts(userAddress: string): Promise<{ quo
     // Filter out non-existent accounts
     const existingAccounts = await filterExistingAccounts(connection, accountAddresses);
 
+    const updateAnchorTolmlParams: UpdateAnchorTomlParams = {
+        accountAddresses: existingAccounts,
+        atlAccounts: Array.from(atlAccounts)
+    };
+
     // Update Anchor.toml with only existing accounts
-    updateAnchorToml(existingAccounts);
+    updateAnchorToml(updateAnchorTolmlParams);
 
     console.log(`Updated Anchor.toml with ${existingAccounts.size} existing accounts to clone`);
     console.log('Please restart your validator for the changes to take effect');
@@ -250,3 +369,8 @@ export async function cloneNecessaryAccounts(userAddress: string): Promise<{ quo
     // Return the quote and swap data for use in tests
     return { quote, swapData };
 } 
+
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

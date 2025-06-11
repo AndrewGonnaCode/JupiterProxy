@@ -16,234 +16,37 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 ./**/*.ts"
 
 [test]
-startup_wait = 10000
+startup_wait = 100000
 
 [test.validator]
 url = "https://api.mainnet-beta.solana.com"
 
 [[test.validator.clone]]
 address = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
-
 [[test.validator.clone]]
 address = "So11111111111111111111111111111111111111112"  # WSOL
-
 [[test.validator.clone]]
 address = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"  # USDT
-
 [[test.validator.clone]]
 address = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"  # Jupiter Aggregator
-
 [[test.validator.clone]]
 address = "4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT"  # Jupiter Executable Data Account
-
 [[test.validator.clone]]
 address = "D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf"  # Jupiter Aggregator Event Authority
-
 [[test.validator.clone]]
 address = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-
 [[test.validator.clone]]
-address = "6LXutJvKUw8Q5ue2gCgKHQdAN4suWW8awzFVC6XCguFx"
-
+address = "SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe"
 [[test.validator.clone]]
-address = "BuqEDKUwyAotZuK37V4JYEykZVKY8qo1zKbpfU9gkJMo"
-
+address = "5guD4Uz462GT4Y4gEuqyGsHZ59JGxFN4a3rF6KWguMcJ"
 [[test.validator.clone]]
-address = "G4CD7aqqZZ6QKCNHrc1MPdS9Aw8BWmQ5ZkDd54W6mAEG"
-
+address = "BuAehYMuKCGrdRKQbXutUAtqzdDBKpbvvWwUKrhJPk1H"
 [[test.validator.clone]]
-address = "2wT8Yq49kHgDzXuPxZSaeLaH1qbmGXtEyPy64bL7aD3c"
-
-[[test.validator.clone]]
-address = "4BXpSHpJa6EbgQgGWV8bQVw9t1VijGXBXzYY8m6v969V"
-
-[[test.validator.clone]]
-address = "FuTkxuFrEkjj61FPpW3KGBX8287bb2Bhj4ZnLVsYRgJ4"
-
-[[test.validator.clone]]
-address = "52ASTPfF9PZ8sH4Vqd7k5Vug88RLByLnKEjWo5Xgtc5D"
-
-[[test.validator.clone]]
-address = "AYUiY8PBEtn1GSJF1REro4aYyBU1BDwWy1qDzG6Qxjgz"
-
-[[test.validator.clone]]
-address = "FB5jqofnFZzNo5yvWPNUNnrrfjG7mNFf2C6BxVfJJcve"
-
-[[test.validator.clone]]
-address = "YVSaKfvkYT4SnGdUpXpGJ6EdnSTo1wsJue9xAi92DE6"
-
-[[test.validator.clone]]
-address = "FBYA4EbHzn15Pev96CfPvctDtTVGMW43mhvwJn9NRYbM"
-
-[[test.validator.clone]]
-address = "8RVPH46opPd3qLy1n1djntzGMZxnqEzbYs9uoeixdnwk"
-
-[[test.validator.clone]]
-address = "3ZDBff7jeQaksmGvmkRix36rU159EBDjYiPThvV8QVZM"
-
-[[test.validator.clone]]
-address = "swapNyd8XiQwJ6ianp9snpu4brUqFxadzvHebnAXjJZ"
-
-[[test.validator.clone]]
-address = "95QUtvDkuoDZrNJiuh9MdahkpRNtSVhZRe83oepd8AM7"
-
-[[test.validator.clone]]
-address = "AioJRQXvcDLRhHMd6DAkTbbMpgVx63qSGQYmRBS2vHYA"
-
-[[test.validator.clone]]
-address = "5K7CHUbBYAh6wrantyJvDDqwT4VoKuZTi73CN1DTUUer"
-
-[[test.validator.clone]]
-address = "7imnGYfCovXjMWKdbQvETFVMe72MQDX4S5zW4GFxMJME"
-
-[[test.validator.clone]]
-address = "vo1tWgqZMjG61Z2T9qUaMYKqZ75CYzMuaZ2LZP1n7HV"
-
+address = "48KLHQiGNAUjvsbEk8hFQomg2C7ZZfx69y7LUYGYbBnp"
 [[test.validator.clone]]
 address = "11111111111111111111111111111111"
-
 [[test.validator.clone]]
-address = "FykYfvHVRZxPUvJGeWBRmwqfPcT7ZHaDSqsHcWeEYxNV"
-
-[[test.validator.clone]]
-address = "72L2vpvB2EntpASsx4rG5UhrvC1k4eJX1amRPuVpNX53"
-
-
-[[test.validator.clone]]
-address = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
-
-[[test.validator.clone]]
-address = "So11111111111111111111111111111111111111112"  # WSOL
-
-[[test.validator.clone]]
-address = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"  # USDT
-
-[[test.validator.clone]]
-address = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"  # Jupiter Aggregator
-
-[[test.validator.clone]]
-address = "4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT"  # Jupiter Executable Data Account
-
-[[test.validator.clone]]
-address = "D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf"  # Jupiter Aggregator Event Authority
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[[test.validator.clone]]
-address = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
-
-[[test.validator.clone]]
-address = "So11111111111111111111111111111111111111112"  # WSOL
-
-[[test.validator.clone]]
-address = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"  # USDT
-
-[[test.validator.clone]]
-address = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"  # Jupiter Aggregator
-
-[[test.validator.clone]]
-address = "4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT"  # Jupiter Executable Data Account
-
-[[test.validator.clone]]
-address = "D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf"  # Jupiter Aggregator Event Authority
-
-
-
-
-
-
-
-
-
-
-
-
-
-[[test.validator.clone]]
-address = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
-
-[[test.validator.clone]]
-address = "So11111111111111111111111111111111111111112"  # WSOL
-
-[[test.validator.clone]]
-address = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"  # USDT
-
-[[test.validator.clone]]
-address = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"  # Jupiter Aggregator
-
-[[test.validator.clone]]
-address = "4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT"  # Jupiter Executable Data Account
-
-[[test.validator.clone]]
-address = "D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf"  # Jupiter Aggregator Event Authority
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[[test.validator.clone]]
-address = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
-
-[[test.validator.clone]]
-address = "So11111111111111111111111111111111111111112"  # WSOL
-
-[[test.validator.clone]]
-address = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"  # USDT
-
-[[test.validator.clone]]
-address = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"  # Jupiter Aggregator
-
-[[test.validator.clone]]
-address = "4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT"  # Jupiter Executable Data Account
-
-[[test.validator.clone]]
-address = "D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf"  # Jupiter Aggregator Event Authority
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+address = "56kUfo4V2puE3gL49us9oywGMwjFqzhzE2YktzTCeP7Q"
