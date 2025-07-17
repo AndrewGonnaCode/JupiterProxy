@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Wallex } from "../target/types/wallex";
+import { myswap } from "../target/types/myswap";
 import AggregatorsService from "../services/aggregator.service";
 import {
   Connection,
@@ -19,12 +19,12 @@ const USER_PUBLIC_KEY = '6DT9hC7ShmZ3zXpTvPUDPyLAREzmhMiXU2A11dZzpQfH';
 
 // TRY CLONE WIHT CONFIG FILE - https://www.anchor-lang.com/docs/references/anchor-toml#test-validator
 
-describe.skip("wallex", () => {
+describe.skip("myswap", () => {
 
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.wallex as Program<Wallex>;
+  const program = anchor.workspace.myswap as Program<myswap>;
   const aggregatorService = new AggregatorsService();
   const amountIn = '1000000000';
 

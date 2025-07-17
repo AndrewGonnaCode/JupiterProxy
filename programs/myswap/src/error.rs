@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 // / Create SwapError enum
 #[error_code]
-pub enum WallexSwapError {
+pub enum myswapSwapError {
     #[msg("Order is expired")]
     OrderExpired,
     #[msg("Insufficient output amount")]

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::error::WallexSwapError;
+use crate::error::myswapSwapError;
 
 const ACCESS_CONTROL_SEED: &[u8] = b"access-control";
 
@@ -20,7 +20,7 @@ pub fn process_set_role(ctx: Context<SetRole>, user: Pubkey, role: u8, add: bool
         if role == ROLE_ADMIN {
             require_keys_eq!(ctx.accounts.signer.key(), access.owner);
         } else {
-            require!(has_role(&access.users, ctx.accounts.signer.key(), ROLE_ADMIN), WallexSwapError::Unauthorized);
+            require!(has_role(&access.users, ctx.accounts.signer.key(), ROLE_ADMIN), myswapSwapError::Unauthorized);
         }
 
         if let Some(existing) = access.users.iter_mut().find(|u| u.user == user) {

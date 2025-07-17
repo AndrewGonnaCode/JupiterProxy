@@ -9,7 +9,7 @@ use std::{str::FromStr};
 
 declare_program!(jupiter_aggregator);
 
-use crate::error::WallexSwapError;
+use crate::error::myswapSwapError;
 use crate::constants::{
     VAULT_SEED,
     FEE_DENOMINATOR,
@@ -118,7 +118,7 @@ pub fn process_swap(ctx: Context<Swap>, amount_in: u64, min_amount_out: u64, dea
         require_keys_eq!(*ctx.accounts.jupiter_program.key, jupiter_program_id());
 
         // Check that deadline is in the future
-        require!(deadline > Clock::get()?.unix_timestamp, WallexSwapError::OrderExpired);
+        require!(deadline > Clock::get()?.unix_timestamp, myswapSwapError::OrderExpired);
 
         let input_mint_key = ctx.accounts.input_mint.key();
         let output_mint_key = ctx.accounts.output_mint.key();
@@ -200,7 +200,7 @@ pub fn process_swap(ctx: Context<Swap>, amount_in: u64, min_amount_out: u64, dea
         let user_amount = token_out_got - fee;
 
 
-        require!(user_amount >= min_amount_out, WallexSwapError::InsufficientOutputAmount);
+        require!(user_amount >= min_amount_out, myswapSwapError::InsufficientOutputAmount);
         
         // Step - 3 transfer output token to recipient from vault
         transfer_tokens_with_signer(

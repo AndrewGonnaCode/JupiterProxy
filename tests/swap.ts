@@ -20,7 +20,7 @@ import {
   getAccount
 } from "@solana/spl-token";
 import { requestAirdrop } from "../utils/request-airdrop";
-import { Wallex } from "../target/types/wallex";
+import { myswap } from "../target/types/myswap";
 import { readSwapCache } from "../utils/hooks/swap-cache";
 import { transferWrappedSol, wrapSol } from "../utils/wrap-sol";
 import { getAssociatedTokenAccounts } from "../utils/getAssociatedTokenAccounts";
@@ -57,7 +57,7 @@ describe.only("Jupiter Swap Tests", () => {
   const INPUT_MINT = new PublicKey(WSOL_ADDRESS);
   const OUTPUT_MINT = new PublicKey(USDC_ADDRESS);
 
-  let program: anchor.Program<Wallex>;
+  let program: anchor.Program<myswap>;
   let payer: Keypair;
   let user: Keypair;
   let connection: Connection;
@@ -72,7 +72,7 @@ describe.only("Jupiter Swap Tests", () => {
   before(async () => {
     console.log('Starting test setup...');
     
-    program = anchor.workspace.wallex as anchor.Program<Wallex>;
+    program = anchor.workspace.myswap as anchor.Program<myswap>;
     connection = new Connection("http://127.0.0.1:8899", "confirmed");
     mainnetConnection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
     

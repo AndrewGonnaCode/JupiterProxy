@@ -11,7 +11,7 @@ mod state;
 mod instructions;
 
 // use crate::state::{ExecutorList, Config};
-use crate::error::WallexSwapError;
+use crate::error::myswapSwapError;
 
 declare_id!("DvNur6pprGPLZHobyxoLxAoKvj8E1YjR83m94HperYwz");
 
@@ -23,11 +23,11 @@ pub fn jupiter_program_id() -> Pubkey {
 }
 
 #[program]
-pub mod wallex {
+pub mod my_swap {
     use super::*;
 
     pub fn initialize_acl(ctx: Context<InitAccessControl>, owner: Pubkey) -> Result<()> {
-        require_keys_eq!(ctx.accounts.payer.key(), Pubkey::from_str(OWNER_PUBKEY).unwrap(), WallexSwapError::Unauthorized);
+        require_keys_eq!(ctx.accounts.payer.key(), Pubkey::from_str(OWNER_PUBKEY).unwrap(), myswapSwapError::Unauthorized);
         return process_init_access_control(ctx, owner);
     }
     pub fn set_role(ctx: Context<SetRole>, user: Pubkey, role: u8, add: bool) -> Result<()> {

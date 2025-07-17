@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-wallex = "DvNur6pprGPLZHobyxoLxAoKvj8E1YjR83m94HperYwz"
+my_swap = "DvNur6pprGPLZHobyxoLxAoKvj8E1YjR83m94HperYwz"
 
 [registry]
 url = "https://api.apr.dev"
