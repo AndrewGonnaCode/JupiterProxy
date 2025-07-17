@@ -1,6 +1,6 @@
-# Wallex MVP
 
-**WallexSwap** is a decentralized application built on Solana that allows users to swap one token (Token X) for another token (Token Y) using a script. The program uses the Jupiter Aggregator for efficient token swaps.
+
+**Jupiter Proxt** is a decentralized application built on Solana that allows users to swap one token (Token X) for another token (Token Y) using a script. The program uses the Jupiter Aggregator for efficient token swaps.
 
 ## Functionality
 
