@@ -1,38 +1,38 @@
-# myswap MVP
+# Wallex MVP
 
-**myswapSwap** — это децентрализованное приложение, построенное на Solana, которое позволяет пользователям обменивать один токен (Token X) на другой токен (Token Y) с использованием скрипта. Программа использует Jupiter Aggregator для эффективного обмена токенов.
-## Функциональность
+**WallexSwap** is a decentralized application built on Solana that allows users to swap one token (Token X) for another token (Token Y) using a script. The program uses the Jupiter Aggregator for efficient token swaps.
 
-Основная функциональность программы myswap MVP заключается в обеспечении обмена токенов в mainnet сети Solana:
+## Functionality
 
-1. **Обмен токенов**: Позволяет обменивать заданное количество `inputToken` (Token X) на `outputToken` (Token Y).
-2. **Настройка переменных**: Необходимо задать следующие переменные в скрипте расположенном в `scripts/swap.ts`:
-   - `inputToken`: Токен, который нужно обменять (Token X).
-   - `outputToken`: Токен, который нужно получить (Token Y).
-   - `amountIn`: Количество `inputToken` для обмена.
-3. **Отображение результата**: После выполнения обмена результат (количество полученного `outputToken`) отображается в консоли.
+The core functionality of the Wallex MVP program is to facilitate token swaps on the Solana mainnet:
 
-## Как это работает
+1. **Token Swap**: Enables swapping a specified amount of `inputToken` (Token X) for `outputToken` (Token Y).
+2. **Setting Variables**: You need to set the following variables in the script located at `scripts/swap.ts`:
+   - `inputToken`: The token you want to swap (Token X).
+   - `outputToken`: The token you want to receive (Token Y).
+   - `amountIn`: The amount of `inputToken` to swap.
+3. **Display Result**: After the swap is executed, the result (amount of received `outputToken`) is displayed in the console.
 
-1. **Ввод параметров**: Пользователь задает необходимые переменные (`inputToken`, `outputToken`, `amountIn`) в скрипте(`scripts/swap.ts`).
-2. **Выполнение**: Скрипт взаимодействует с программой myswap для выполнения обмена.
-3. **Валидация**: Программа проверяет транзакцию, чтобы убедиться, что:
-   - Обмен выполнен до указанного срока(deadline устанавливается автоматически на 1 час вперед).
-   - Количество полученных токенов соответствует минимальному требуемому значению(Данное значение берется из ответа на запрос получения квоты от Jupiter API)
-4. **Результат**: Программа переводит полученные токены на адрес пользователя и отображает результат в консоли.
+## How It Works
 
-## Требования
+1. **Input Parameters**: The user sets the required variables (`inputToken`, `outputToken`, `amountIn`) in the script (`scripts/swap.ts`).
+2. **Execution**: The script interacts with the Wallex program to perform the swap.
+3. **Validation**: The program verifies the transaction to ensure that:
+   - The swap is completed before the specified deadline (set automatically to 1 hour ahead).
+   - The amount of received tokens meets the minimum required (this value is obtained from the quote response of the Jupiter API).
+4. **Result**: The program transfers the received tokens to the user’s address and displays the result in the console.
 
-- Кошелек Solana с достаточным количеством средств для оплаты комиссий за транзакции(должен располагаться в `./test-wallet.json`)
-- `inputToken` и `outputToken` должны поддерживаться Jupiter Aggregator.
-- Скрипт должен быть настроен с правильными параметрами.
+## Requirements
 
-## Использование
+- A Solana wallet with sufficient funds to cover transaction fees (should be located at `./test-wallet.json`).
+- `inputToken` and `outputToken` must be supported by the Jupiter Aggregator.
+- The script must be configured with the correct parameters.
 
-1. Перейдите в `scripts/swap.ts`.
-2. Задайте следующие переменные:
-   ```javascript
+## Usage
+
+1. Navigate to `scripts/swap.ts`.
+2. Set the following variables:
+   ```ts
    let inputToken = "<TOKEN_X_MINT_ADDRESS>";
    let outputToken = "<TOKEN_Y_MINT_ADDRESS>";
    let amountIn = <AMOUNT_TO_SWAP>;
-3. Вызовете скрипт используя комманду: `npm run swap`
